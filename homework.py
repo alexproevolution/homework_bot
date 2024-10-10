@@ -4,7 +4,6 @@ import time
 import sys
 
 import requests
-import telegram
 from dotenv import load_dotenv
 from telebot import TeleBot, apihelper
 
@@ -116,7 +115,7 @@ def get_api_answer(current_timestamp):
     try:
         response = requests.get(**all_params)
     except requests.exceptions.RequestException as error:
-        raise telegram.TelegramError(CONNECTION_ERROR.format(
+        raise TeleBot.TelegramError(CONNECTION_ERROR.format(
             error=error,
             **all_params,
         ))
