@@ -1,12 +1,16 @@
+# Импорты из стандартных библиотек
 import logging
 import os
-import time
 import sys
+import time
 from http import HTTPStatus
 
+# Импорты сторонних библиотек
 import requests
 from dotenv import load_dotenv
 from telebot import TeleBot, apihelper
+
+# Импорты модулей этого проекта
 from exceptions import (
     EndpointError,
     DataTypeError,
@@ -14,12 +18,20 @@ from exceptions import (
     TokenError,
 )
 
+
 load_dotenv()
 
 # Константы
 CONNECTION_ERROR = '{error}, {url}, {headers}, {params}'
 SERVICE_REJECTION = '{code}'
-WRONG_ENDPOINT = '{response_status}, {url}, {headers}, {params}'
+WRONG_ENDPOINT = (
+    'Ошибка: {response_status}, '
+    'Код ошибки: {error_code}, '
+    'Сообщение: {error_message}, '
+    'URL: {url}, '
+    'Заголовки: {headers}, '
+    'Параметры: {params}'
+)
 WRONG_HOMEWORK_STATUS = '{homework_status}'
 WRONG_DATA_TYPE = 'Неверный тип данных {type}, вместо "dict"'
 STATUS_IS_CHANGED = '{verdict}, {homework}'
@@ -65,14 +77,13 @@ def check_tokens():
         logging.critical(f'Отсутствуют токены: {", ".join(missing_tokens)}')
         raise TokenError(f'Отсутствуют токены: {", ".join(missing_tokens)}')
 
-    return True
-
 
 def send_message(bot, message):
     """Отправляет сообщение пользователю в Телегу."""
     logging.debug(f'Начало отправки сообщения в Telegram: {message}')
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        logging.info(f'Сообщение успешно отправлено: {message}')
     except (apihelper.ApiException,
             requests.exceptions.RequestException) as error:
         logging.error(f'Ошибка при отправке сообщения: {error}')
@@ -170,11 +181,8 @@ def main():
 
             if message != previous_message and send_message(bot, message):
                 previous_message = message
-                logging.info(MESSAGE_IS_SENT.format(message))
-            else:
-                logging.debug('Статус работы не изменился')
+                timestamp = response.get('current_date', timestamp)
 
-            timestamp = response.get('current_date')
         except Exception as error:
             error_message = f'Сбой в работе программы: {error}'
             logging.error(error_message)
@@ -184,7 +192,6 @@ def main():
                 and send_message(bot, error_message)
             ):
                 previous_message = error_message
-                logging.info(MESSAGE_IS_SENT.format(error_message))
         finally:
             time.sleep(RETRY_PERIOD)
 

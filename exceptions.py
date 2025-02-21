@@ -1,17 +1,6 @@
-class NetworkError(Exception):
-    """Ошибка отсутствия сети."""
-
 
 class EndpointError(Exception):
     """Ошибка, если эндпойнт не корректен."""
-
-
-class MessageSendingError(Exception):
-    """Ошибка отправки сообщения."""
-
-
-class GlobalsError(Exception):
-    """Ошибка, если есть пустые глобальные переменные."""
 
 
 class DataTypeError(Exception):
