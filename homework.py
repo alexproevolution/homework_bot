@@ -85,10 +85,9 @@ def send_message(bot, message):
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     except (apihelper.ApiException,
             requests.exceptions.RequestException) as error:
-        logging.info(f'Сообщение успешно отправлено: {message}')
         logging.error(f'Ошибка при отправке сообщения: {error}')
         return False
-
+    logging.info(f'Сообщение успешно отправлено: {message}')
     return True
 
 
@@ -107,20 +106,20 @@ def get_api_answer(current_timestamp):
 
     response_status = response.status_code
     if response_status != HTTPStatus.OK:
-        error_code, error_message = (
-            (response.json().get('code', 'Неизвестный код'),
-             response.json().get('error', 'Неизвестная ошибка'))
+        response = response.json()
+        raise EndpointError(
+            f'Ошибка: {response_status}, '
+            f'Код ошибки: {response.get("code", "Неизвестный код")}, '
+            f'Причина: {response.get("reason", "Неизвестная причина")}, '
+            f'Сообщение: {response.get("error", "Неизвестная ошибка")}'
         )
-
-        raise EndpointError(f'Ошибка: {response_status}, '
-                            f'Код ошибки: {error_code}, '
-                            f'Сообщение: {error_message}'
-                            )
 
     try:
         return response.json()
     except Exception as error:
-        raise ResponseFormatError(FORMAT_NOT_JSON.format(error))
+        raise ResponseFormatError(
+            FORMAT_NOT_JSON.format(error)
+        )
 
 
 def check_response(response):
