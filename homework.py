@@ -83,9 +83,9 @@ def send_message(bot, message):
     logging.debug(f'Начало отправки сообщения в Telegram: {message}')
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-        logging.info(f'Сообщение успешно отправлено: {message}')
     except (apihelper.ApiException,
             requests.exceptions.RequestException) as error:
+        logging.info(f'Сообщение успешно отправлено: {message}')
         logging.error(f'Ошибка при отправке сообщения: {error}')
         return False
 
@@ -107,18 +107,15 @@ def get_api_answer(current_timestamp):
 
     response_status = response.status_code
     if response_status != HTTPStatus.OK:
-        response_data = response.json()
-        error_code = response_data.get('code', 'Неизвестный код')
-        error_message = response_data.get('error', 'Неизвестная ошибка')
+        error_code, error_message = (
+            (response.json().get('code', 'Неизвестный код'),
+             response.json().get('error', 'Неизвестная ошибка'))
+        )
 
-        raise EndpointError(WRONG_ENDPOINT.format(
-            response_status=response_status,
-            error_code=error_code,
-            error_message=error_message,
-            url=all_params['url'],
-            headers=all_params['headers'],
-            params=all_params['params'],
-        ))
+        raise EndpointError(f'Ошибка: {response_status}, '
+                            f'Код ошибки: {error_code}, '
+                            f'Сообщение: {error_message}'
+                            )
 
     try:
         return response.json()
